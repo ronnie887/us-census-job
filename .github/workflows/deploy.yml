@@ -44,8 +44,10 @@ jobs:
           docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.IMAGE_NAME }}:latest
 
       - name: Update Cloud Run Job
-        # This updates the existing job (created by Terraform) with the new image
+        # This updates the job with the new image and re-links the Secret Manager secret
         run: |
           gcloud run jobs update ${{ env.JOB_NAME }} \
             --image ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }} \
-            --region ${{ env.REGION }}
+            --region ${{ env.REGION }} \
+            --set-secrets "UscensusAPI=census-api-key:latest" \
+            --set-env-vars "GCS_BUCKET_NAME=auth-test-proj-481009-data-bucket-8871"
