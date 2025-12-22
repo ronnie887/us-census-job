@@ -2,3 +2,4 @@ requests
 pandas
 python-dotenv
 google-cloud-storage
+importlib-metadata>=4.4
