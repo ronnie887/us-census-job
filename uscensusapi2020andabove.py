@@ -9,7 +9,7 @@ load_dotenv()
 # 1. SSL Warning Suppression
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-api_key = os.getenv("UscensusAPI")
+api_key = os.getenv("UscensusAPI", "").strip()
 # --- CONFIGURATION ---
 API_KEY = api_key
 YEAR = "2020"
@@ -73,16 +73,20 @@ for i, group in enumerate(chunker(zips_to_run, batch_size)):
     try:
         response = requests.get(url, verify=False)
         if response.status_code == 200:
-            data = response.json()
-            # Convert to DF (Skip header row 0 for data)
-            chunk_df = pd.DataFrame(data[1:], columns=data[0])
-            all_data_frames.append(chunk_df)
-            print(f"Batch {i+1}: Success ({len(group)} ZIPs)")
+            try:
+                data = response.json()
+                # Convert to DF (Skip header row 0 for data)
+                chunk_df = pd.DataFrame(data[1:], columns=data[0])
+                all_data_frames.append(chunk_df)
+                print(f"Batch {i+1}: Success ({len(group)} ZIPs)")
+            except ValueError as json_err:
+                print(f"Batch {i+1}: JSON Parse Error - {json_err}")
+                print(f"Raw Response Text: {response.text}")
         else:
             print(f"Batch {i+1}: Failed (Status {response.status_code}) - {response.text}")
             
     except Exception as e:
-        print(f"Batch {i+1}: Error - {e}")
+        print(f"Batch {i+1}: Request Error - {e}")
 
 # --- COMBINE AND SAVE ---
 if all_data_frames:
